@@ -230,4 +230,4 @@ with right_calculator:
             st.error("Hold up! Please fill out your Name, Phone Number, and Email before starting.")
         else:
             st.balloons()
-            st.success(f"Welcome aboard, {full_name}! Your personalized portfolio strategy has been initiated. Mr. Vishal Raj will contact you shortly.")
+            st.success(f"Welcome aboard, {full_name}! Your personalized portfolio strategy has been initiated. Patel Divyesh will contact you shortly.")
