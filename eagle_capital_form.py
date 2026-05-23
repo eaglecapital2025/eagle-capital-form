@@ -12,7 +12,7 @@ st.set_page_config(
 # Main Dashboard Headers
 st.title("EAGLE CAPITAL")
 st.subheader("Secure Wealth Creation & Retirement Planning Desk")
-st.caption("AMFI REGISTERED MUTUAL FUND DISTRIBUTOR: ARN-335909 | Distributor: Mr. Vishal Raj | Support: 9825821407")
+st.caption("AMFI REGISTERED MUTUAL FUND DISTRIBUTOR: ARN-335909 | Distributor: Patel Divyesh | Support: 9409431886")
 
 st.write("---")
 
