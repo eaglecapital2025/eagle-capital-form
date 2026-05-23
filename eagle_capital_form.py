@@ -52,7 +52,6 @@ with left_inputs:
     with g3: goal_retire = st.checkbox("🌴 Retirement")
     with g4: goal_wealth = st.checkbox("🚀 Wealth")
     
-    # Micro-Interaction Dopamine: Toast notifications
     if goal_home and "home_toast" not in st.session_state:
         st.toast("Great goal! Let's build that Dream Home.", icon="🏡")
         st.session_state.home_toast = True
@@ -60,12 +59,12 @@ with left_inputs:
         st.toast("Retirement planning activated.", icon="🌴")
         st.session_state.retire_toast = True
     
-    # Human-Readable Numbers for Goals
+    # Expanded HNI Numbers (Up to 100 Crores)
     amount_mapping = {
         "5 Lakhs": 500000, "10 Lakhs": 1000000, "25 Lakhs": 2500000,
         "50 Lakhs": 5000000, "75 Lakhs": 7500000, "1 Crore": 10000000,
-        "1.5 Crores": 15000000, "2 Crores": 20000000, "3 Crores": 30000000,
-        "5 Crores": 50000000, "10 Crores": 100000000
+        "2 Crores": 20000000, "5 Crores": 50000000, "10 Crores": 100000000,
+        "20 Crores": 200000000, "50 Crores": 500000000, "100 Crores": 1000000000
     }
     options_list = list(amount_mapping.keys())
     
@@ -86,50 +85,52 @@ with left_inputs:
         
     if goal_retire:
         selected_count += 1
-        retire_val = st.select_slider("Target for 🌴 Retirement:", options=options_list, value="3 Crores")
+        retire_val = st.select_slider("Target for 🌴 Retirement:", options=options_list, value="5 Crores")
         target_amount += amount_mapping[retire_val]
         
     if goal_wealth:
         selected_count += 1
-        wealth_val = st.select_slider("Target for 🚀 Wealth Creation:", options=options_list, value="50 Lakhs")
+        wealth_val = st.select_slider("Target for 🚀 Wealth Creation:", options=options_list, value="1 Crore")
         target_amount += amount_mapping[wealth_val]
         
     if selected_count == 0:
         st.info("👈 Please select at least one milestone above to set your target.")
         target_amount = 10000000 # Failsafe default
     elif selected_count > 1:
-        st.success(f"**Total Combined Portfolio Target: ₹ {target_amount:,.0f}**")
+        # Dynamic formatting for massive numbers
+        display_target = f"{target_amount/10000000:,.2f} Crores" if target_amount >= 10000000 else f"{target_amount/100000:,.0f} Lakhs"
+        st.success(f"**Total Combined Portfolio Target: ₹ {display_target}**")
 
     st.write("---")
     st.header("Step 3: Strategy & Risk")
     
     investment_type = st.radio(
         "Investment Vehicle:", 
-        ["Systematic Investment Plan (SIP)", "Lumpsum + SIP"], 
+        ["Systematic Investment Plan (SIP) Only", "Lumpsum + SIP"], 
         horizontal=True
     )
     
-    # NEW: Human-Readable Monthly SIP Slider (No More Zeroes)
+    lumpsum_amount = 0
+    if "Lumpsum" in investment_type:
+        lumpsum_mapping = {
+            "₹ 1 Lakh": 100000, "₹ 5 Lakhs": 500000, "₹ 10 Lakhs": 1000000, 
+            "₹ 25 Lakhs": 2500000, "₹ 50 Lakhs": 5000000, "₹ 1 Crore": 10000000, 
+            "₹ 5 Crores": 50000000, "₹ 10 Crores": 100000000
+        }
+        lumpsum_options = list(lumpsum_mapping.keys())
+        selected_lumpsum_text = st.select_slider("Initial Lumpsum Investment (One-Time Base):", options=lumpsum_options, value="₹ 5 Lakhs")
+        lumpsum_amount = lumpsum_mapping[selected_lumpsum_text]
+    
     sip_mapping = {
-        "₹ 2,000": 2000,
-        "₹ 5,000": 5000,
-        "₹ 10,000": 10000,
-        "₹ 15,000": 15000,
-        "₹ 20,000": 20000,
-        "₹ 25,000": 25000,
-        "₹ 30,000": 30000,
-        "₹ 40,000": 40000,
-        "₹ 50,000": 50000,
-        "₹ 75,000": 75000,
-        "₹ 1 Lakh": 100000,
-        "₹ 1.5 Lakhs": 150000,
-        "₹ 2 Lakhs": 200000,
-        "₹ 5 Lakhs": 500000
+        "₹ 2,000": 2000, "₹ 5,000": 5000, "₹ 10,000": 10000, "₹ 15,000": 15000,
+        "₹ 20,000": 20000, "₹ 25,000": 25000, "₹ 30,000": 30000, "₹ 40,000": 40000,
+        "₹ 50,000": 50000, "₹ 75,000": 75000, "₹ 1 Lakh": 100000, "₹ 1.5 Lakhs": 150000,
+        "₹ 2 Lakhs": 200000, "₹ 5 Lakhs": 500000, "₹ 10 Lakhs": 1000000
     }
     sip_options = list(sip_mapping.keys())
     
-    selected_sip_text = st.select_slider("Target Monthly Savings Allocation:", options=sip_options, value="₹ 15,000")
-    monthly_budget = sip_mapping[selected_sip_text] # Converts the text back into math
+    selected_sip_text = st.select_slider("Target Monthly Savings Allocation (SIP):", options=sip_options, value="₹ 15,000")
+    monthly_budget = sip_mapping[selected_sip_text]
     
     years_horizon = st.slider("Target Planning Period Horizon (Years):", min_value=3, max_value=30, value=15)
 
@@ -150,34 +151,43 @@ with left_inputs:
 with right_calculator:
     st.header("📈 Your Wealth Creation Blueprint")
     
-    # Standardized 12% Math Engine (AMFI Standard)
+    # 1. Standardized 12% Math Engine
     annual_growth_rate = 12.0
     m_rate = (annual_growth_rate / 100) / 12
     total_months = years_horizon * 12
     
-    # Live Compounding
-    future_value = monthly_budget * (((1 + m_rate)**total_months - 1) / m_rate) * (1 + m_rate)
-    total_invested = monthly_budget * total_months
+    # 2. Dual Compounding Calculation (SIP + Lumpsum)
+    sip_future_value = monthly_budget * (((1 + m_rate)**total_months - 1) / m_rate) * (1 + m_rate)
+    lumpsum_future_value = lumpsum_amount * ((1 + (annual_growth_rate / 100))**years_horizon)
+    
+    future_value = sip_future_value + lumpsum_future_value
+    total_invested = (monthly_budget * total_months) + lumpsum_amount
     earned_gains = future_value - total_invested
     
-    # Inflation Mathematics (6%)
     inflation_rate = 0.06
     real_purchasing_power = future_value / ((1 + inflation_rate)**years_horizon)
     
-    # Goal Tracking %
     goal_percentage = (future_value / target_amount) * 100 if target_amount > 0 else 0
     
-    # Gamified Visual Cards
+    # 3. Gamified Visual Cards
     with st.container(border=True):
         st.subheader("The Accumulation Strategy")
-        st.metric(label="Total Cash Principal Contributions", value=f"₹{total_invested:,.0f}")
         
-        # Positive green growth emphasis
+        # Displaying the breakdown dynamically if lumpsum exists
+        if lumpsum_amount > 0:
+            st.write(f"Initial Base: ₹{lumpsum_amount:,.0f} | SIP Total: ₹{monthly_budget * total_months:,.0f}")
+            
+        st.metric(label="Total Cash Principal Contributions", value=f"₹{total_invested:,.0f}")
         st.metric(label=f"Estimated Growth Earned (@ 12.0%)", value=f"₹{future_value:,.0f}", delta=f"Profit: + ₹{earned_gains:,.0f}")
         
         st.write("---")
         st.subheader("The Final Outcomes")
-        st.metric(label="ESTIMATED TOTAL MATURE PORTFOLIO VALUE", value=f"₹{future_value:,.0f}")
+        
+        # Clean formatting for massive outcomes
+        if future_value >= 10000000:
+            st.metric(label="ESTIMATED TOTAL MATURE PORTFOLIO VALUE", value=f"₹ {future_value/10000000:,.2f} Crores")
+        else:
+            st.metric(label="ESTIMATED TOTAL MATURE PORTFOLIO VALUE", value=f"₹ {future_value/100000:,.2f} Lakhs")
         
         show_inflation = st.toggle("📉 Show Inflation-Adjusted Value (Real Purchasing Power)")
         if show_inflation:
@@ -190,32 +200,30 @@ with right_calculator:
             
     st.write("")
     
-    # Dynamic Progress Bar
+    # 4. Dynamic Progress Bar
     st.write("**Target Goal Achievement:**")
     capped_progress = min(int(goal_percentage), 100)
     st.progress(capped_progress)
     
     if goal_percentage >= 100:
-        st.success(f"🎯 **Phenomenal!** You are strictly on track. This SIP funds **{goal_percentage:,.1f}%** of your target.")
+        st.success(f"🎯 **Phenomenal!** You are strictly on track. This strategy funds **{goal_percentage:,.1f}%** of your target.")
     else:
-        # Calculate exactly how much extra per month they need to hit 100%
+        # Recalculating the shortfall gap purely based on SIP increase requirement
         shortfall = target_amount - future_value
         extra_monthly_needed = shortfall / ((((1 + m_rate)**total_months - 1) / m_rate) * (1 + m_rate))
         
-        # Format the extra monthly needed to look cleaner
         if extra_monthly_needed > 100000:
             extra_text = f"₹ {extra_monthly_needed/100000:,.2f} Lakhs/month"
         else:
             extra_text = f"₹ {extra_monthly_needed:,.0f}/month"
             
-        st.warning(f"🎯 **Insight:** This SIP covers **{goal_percentage:,.1f}%** of your target. To reach a full 100%, consider pushing your slider up by **{extra_text}**.")
+        st.warning(f"🎯 **Insight:** This strategy covers **{goal_percentage:,.1f}%** of your target. To reach a full 100%, consider pushing your SIP slider up by an additional **{extra_text}**.")
 
     st.caption("*Note: Projections use an estimated 12.0% per annum return. Mutual Fund investments are subject to market risks.")
     
     st.write("---")
     
-    # Conversion Action
-    submit_button = st.button("🚀 START THIS SIP PORTFOLIO NOW", use_container_width=True, type="primary")
+    submit_button = st.button("🚀 START THIS PORTFOLIO STRATEGY NOW", use_container_width=True, type="primary")
     
     if submit_button:
         if not full_name or not phone_number or not email_address:
